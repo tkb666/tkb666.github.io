@@ -1,0 +1,911 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="步进电机 7 段 S 形曲线加减速控制算法推导与C语言代码实现前言最近，学习并完成了步进电机驱动芯片国产替代的任务，其中有一部分要求是通过国产步进电机驱动芯片实现对电机的s形速度曲线的驱动。因此，本文围绕步进电机驱动，完成了 S 曲线的运动学推导以及 C 语言离散化实现的工程指南。以便总结和复习。  一、 基础概念步进电机加减速控制的核心是通过调整脉冲频率实现速度平滑变化，避免启停时的机械冲击和失">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/2026/08/05/%E6%AD%A5%E8%BF%9B%E7%94%B5%E6%9C%BAS%E5%BD%A2%E9%80%9F%E5%BA%A6%E6%9B%B2%E7%BA%BF%E5%8E%9F%E7%90%86%E4%B8%8E%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="步进电机 7 段 S 形曲线加减速控制算法推导与C语言代码实现前言最近，学习并完成了步进电机驱动芯片国产替代的任务，其中有一部分要求是通过国产步进电机驱动芯片实现对电机的s形速度曲线的驱动。因此，本文围绕步进电机驱动，完成了 S 曲线的运动学推导以及 C 语言离散化实现的工程指南。以便总结和复习。  一、 基础概念步进电机加减速控制的核心是通过调整脉冲频率实现速度平滑变化，避免启停时的机械冲击和失">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/.marking/assets/img-1786066069838.png">
+<meta property="og:image" content="http://example.com/.marking/assets/img-1786070213319.png">
+<meta property="og:image" content="http://example.com/.marking/assets/img-1786327374534.png">
+<meta property="og:image" content="http://example.com/.marking/assets/img-1786348604022.png">
+<meta property="og:image" content="http://example.com/.marking/assets/img-1786412135734.png">
+<meta property="article:published_time" content="2026-08-05T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-11T06:19:30.114Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="doc">
+<meta property="article:tag" content="tech">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/.marking/assets/img-1786066069838.png">
+  
+  
+  
+  <title>Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>Home</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>Archives</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>Categories</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>Tags</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>About</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>Search</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="Light"
+               data-label-dark="Dark">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">Dark</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text=""></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-05 08:00" pubdate>
+          August 5, 2026 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          16k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          131 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header"></h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="步进电机-7-段-S-形曲线加减速控制算法推导与C语言代码实现"><a href="#步进电机-7-段-S-形曲线加减速控制算法推导与C语言代码实现" class="headerlink" title="步进电机 7 段 S 形曲线加减速控制算法推导与C语言代码实现"></a>步进电机 7 段 S 形曲线加减速控制算法推导与C语言代码实现</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近，学习并完成了步进电机驱动芯片国产替代的任务，其中有一部分要求是通过国产步进电机驱动芯片实现对电机的s形速度曲线的驱动。因此，本文围绕步进电机驱动，完成了 S 曲线的运动学推导以及 C 语言离散化实现的工程指南。以便总结和复习。</p>
+<hr>
+<h2 id="一、-基础概念"><a href="#一、-基础概念" class="headerlink" title="一、 基础概念"></a>一、 基础概念</h2><p>步进电机加减速控制的核心是通过调整脉冲频率实现速度平滑变化，避免启停时的机械冲击和失步。常见算法包括T型（梯形）加减速和S型加减速。相比于步进电机的 T 形曲线（T-Curve），S 形曲线（S-Curve）减少了由于加速度突变带来的冲击（Jerk）和系统振荡。<br><img src="/.marking/assets/img-1786066069838.png" srcset="/img/loading.gif" lazyload alt="S_T.png"><br>此外 S 形曲线并没有具体的限定的和轨迹，可以是正弦函数、指数函数，也可以是自定义函数。只要满足速度曲线是一个“S”即可。常用的 S 形曲线有Sigmoid函数、5 段、7 段 S 形速度曲线。Sigmoid有显式的函数解析式，速度的计算与理论公式的推导更简单，本文主要讲解7段 S 形速度曲线的推导。<br><img src="/.marking/assets/img-1786070213319.png" srcset="/img/loading.gif" lazyload alt="7段S.png"><br>7 段速度曲线分别对应为：<br> $OA$: 加加速段 、$AB$: <strong>匀加速段</strong>、 $BC$: 减加速段、 $CD$: <strong>匀速段</strong> 、$DE$: 加减速段、 $EF$: <strong>匀减速段</strong>、 $FG$: 减减速段。其中 7 段 S 形速度曲线比 5 段在加速段和减速段中分别多出了匀加速段和匀减速段。</p>
+<blockquote>
+<p>[!CAUTION]<br>当设置的最大速度$v_{max}$、最大加速度 $a_{max}$、加加速度 $j$ 以及总步数 $\Delta S$ 不匹配时，7 段 S 曲线会退化成 6 段、5 段甚至 4 段。因此，在编写代码时，不能理想的认为我们设置的初始条件能够完全满足7段中的每一段曲线的实现，应该考虑到不满足时，速度曲线应当是一种怎样的形态。即使是4段，速度曲线也依然是S形，只是可能没有了匀速段、匀加速段或者匀减速段。</p>
+</blockquote>
+<hr>
+<h2 id="二、-基础变量定义"><a href="#二、-基础变量定义" class="headerlink" title="二、 基础变量定义"></a>二、 基础变量定义</h2><blockquote>
+<p>[!TIP]<br>S 曲线运动核心积分公式化简：<br>$$a(t) &#x3D; a_0 + j \cdot t$$<br>$$v(t) &#x3D; v_0 + a_0 \cdot t + \frac{1}{2} j \cdot t^2$$<br>$$S(t) &#x3D; S_0 + v_0 \cdot t + \frac{1}{2} a_0 \cdot t^2 + \frac{1}{6} j \cdot t^3$$</p>
+</blockquote>
+<p>无论是在理论推导、公式计算还是实际的工程开发中。我们都需要在系统开始前明确已知量，在实际的步进电机驱动控制开发中，我们会设定总的步进步数 $S_{total}$、最大速度 $v_{max}$、最大加速度 $a_{max}$ 以及加加速度 $j$ 作为已知量。接着我们将这些已知量代入 S 形曲线算法中，计算出每一步所对应的实时速度 $V_{real}$。进而转换为定时器的计数值。</p>
+<p><strong>输入：</strong></p>
+<ul>
+<li>$v_0$: 初始速度（通常设为 0）</li>
+<li>$v_{end}$: 最终停止速度（通常设为 0）</li>
+<li>$v_{max}$: 设定的目标最大运行速度</li>
+<li>$a_{max}$: 设定的最大加速度（假设加减速对称 $a_a &#x3D; a_d &#x3D; a_{max}$）</li>
+<li>$j$: 加加速度 &#x2F; 冲击（假设加减速段加加速度大小相等 $j_a &#x3D; j_d &#x3D; j$）</li>
+<li>$S_{total}$：设定的目标位移量</li>
+</ul>
+<p><strong>输出：</strong></p>
+<ul>
+<li>$T_i$: 第 $i$ 段的运行时间</li>
+<li>$\Delta S_i$: 第 $i$ 段的运行步数（位移）</li>
+<li>$V_{real}$: 每一步所对应的速度，即每一个pwm脉冲对应的频率</li>
+</ul>
+<hr>
+<p>接着，我们进行理论的推导。在理想情况下，我们默认每一段曲线（7 段）都能完整实现，也就是我们的总步长足够长，有足够步数和时间让速度可以加速到最大值。</p>
+<h2 id="二、-7-段位移与速度推导过程"><a href="#二、-7-段位移与速度推导过程" class="headerlink" title="二、 7 段位移与速度推导过程"></a>二、 7 段位移与速度推导过程</h2><blockquote>
+<p>[!TIP]<br>以下各公式的推导均是来源于基本积分公式的计算，可以结合各阶段曲线图像的面积来理解。</p>
+</blockquote>
+<h4 id="1-加加速段-Acceleration-Build-up"><a href="#1-加加速段-Acceleration-Build-up" class="headerlink" title="1. 加加速段 ( Acceleration Build-up )"></a>1. 加加速段 ( Acceleration Build-up )</h4><p>加速度从 0 线性增加到 $a_{max}$。</p>
+<ul>
+<li><strong>状态</strong>：$a_0 &#x3D; 0, j &#x3D; j$</li>
+<li><strong>时间</strong>：$T_1 &#x3D; \frac{a_{max}}{j}$</li>
+<li><strong>末端速度</strong>：$v_1 &#x3D; v_0 + \frac{1}{2} j T_1^2$</li>
+<li><strong>本段步数</strong>：$\Delta S_1 &#x3D; v_0 T_1 + \frac{1}{6} j T_1^3$</li>
+</ul>
+<h4 id="2-匀加速段-Constant-Acceleration"><a href="#2-匀加速段-Constant-Acceleration" class="headerlink" title="2. 匀加速段 ( Constant Acceleration )"></a>2. 匀加速段 ( Constant Acceleration )</h4><p>加速度保持为最大值 $a_{max}$，速度线性增加。</p>
+<ul>
+<li><strong>状态</strong>：$a &#x3D; a_{max}, j &#x3D; 0$</li>
+<li><strong>末端速度</strong>：$v_2 &#x3D; v_1 + a_{max} T_2$</li>
+<li><strong>本段步数</strong>：$\Delta S_2 &#x3D; v_1 T_2 + \frac{1}{2} a_{max} T_2^2$</li>
+</ul>
+<h4 id="3-减加速段-Acceleration-Reduction"><a href="#3-减加速段-Acceleration-Reduction" class="headerlink" title="3. 减加速段 ( Acceleration Reduction )"></a>3. 减加速段 ( Acceleration Reduction )</h4><p>加速度从 $a_{max}$ 线性减小到 0。虽然 $j$ 为负，但加速度 $a(t) \ge 0$，因此速度依然在正向增加。</p>
+<ul>
+<li><strong>状态</strong>：$a_0 &#x3D; a_{max}, j &#x3D; -j$</li>
+<li><strong>时间</strong>：$T_3 &#x3D; T_1 &#x3D; \frac{a_{max}}{j}$</li>
+<li><strong>末端速度</strong>：$v_3 &#x3D; v_2 + a_{max} T_3 - \frac{1}{2} j T_3^2$</li>
+<li><strong>本段步数</strong>：$\Delta S_3 &#x3D; v_2 T_3 + \frac{1}{2} a_{max} T_3^2 - \frac{1}{6} j T_3^3$</li>
+</ul>
+<h4 id="4-匀速段-Constant-Velocity"><a href="#4-匀速段-Constant-Velocity" class="headerlink" title="4. 匀速段 (Constant Velocity)"></a>4. 匀速段 (Constant Velocity)</h4><p>加速度为 0，以最大速度 $v_{max}$ 匀速运行。</p>
+<ul>
+<li><strong>状态</strong>：$a &#x3D; 0, j &#x3D; 0$</li>
+<li><strong>本段步数</strong>：$\Delta S_4 &#x3D; v_{max} T_4$</li>
+</ul>
+<h4 id="5-加减速段-Deceleration-Build-up"><a href="#5-加减速段-Deceleration-Build-up" class="headerlink" title="5. 加减速段 (Deceleration Build-up)"></a>5. 加减速段 (Deceleration Build-up)</h4><ul>
+<li><strong>状态</strong>：$a_0 &#x3D; 0, j &#x3D; -j$</li>
+<li><strong>时间</strong>：$T_5 &#x3D; \frac{a_{max}}{j}$</li>
+<li><strong>本段步数</strong>：$\Delta S_5 &#x3D; v_{max} T_5 - \frac{1}{6} j T_5^3$</li>
+</ul>
+<h4 id="6-匀减速段-Constant-Deceleration"><a href="#6-匀减速段-Constant-Deceleration" class="headerlink" title="6. 匀减速段 (Constant Deceleration)"></a>6. 匀减速段 (Constant Deceleration)</h4><ul>
+<li><strong>状态</strong>：$a &#x3D; -a_{max}, j &#x3D; 0$</li>
+<li><strong>本段步数</strong>：$\Delta S_6 &#x3D; v_5 T_6 - \frac{1}{2} a_{max} T_6^2$</li>
+</ul>
+<h4 id="7-减减速段-Deceleration-Reduction"><a href="#7-减减速段-Deceleration-Reduction" class="headerlink" title="7. 减减速段 (Deceleration Reduction)"></a>7. 减减速段 (Deceleration Reduction)</h4><ul>
+<li><strong>状态</strong>：$a_0 &#x3D; -a_{max}, j &#x3D; j$</li>
+<li><strong>时间</strong>：$T_7 &#x3D; T_5 &#x3D; \frac{a_{max}}{j}$</li>
+<li><strong>本段步数</strong>：$\Delta S_7 &#x3D; v_6 T_7 - \frac{1}{2} a_{max} T_7^2 + \frac{1}{6} j T_7^3$</li>
+</ul>
+<hr>
+<blockquote>
+<p>[!CAUTION]<br>到这里我们完成了每一段的速度和步数推导，接着我们回到最初的问题：什么时候7段曲线会退化为 6、5、4 段曲线？</p>
+</blockquote>
+<h2 id="三、-短路程下S形速度曲线的重新推导"><a href="#三、-短路程下S形速度曲线的重新推导" class="headerlink" title="三、 短路程下S形速度曲线的重新推导"></a>三、 短路程下S形速度曲线的重新推导</h2><blockquote>
+<p>[!NOTE]</p>
+<ul>
+<li>6 段曲线：无匀速段，速度刚好达到最大值就得马上进入减速段。</li>
+<li>5 段曲线：无匀加速段，$v_{max}$太低，跑不到加速度上限，但位移又足够跑出匀速段。</li>
+<li>4 段曲线：既无匀速段、也无匀加速段。$v_{max}$太低，位移又不足够跑出匀速段。</li>
+</ul>
+</blockquote>
+<p><img src="/.marking/assets/img-1786327374534.png" srcset="/img/loading.gif" lazyload alt="4_5_6.png"><br>此时，不能继续使用上文中 7 段完整 S 曲线的推导公式。对于四种不同情况的速度曲线，无非就是有无匀加速和匀速阶段。它们都受限于能否达到最大速度（决定有无匀速）、最大加速度（决定有无匀加速）、以及实际位移与理想位移的比较。对此，我们引入三个临界阈值来区分以上四种不同情况：</p>
+<blockquote>
+<p>[!TIP]<br>以下公式的推导大家可以根据图像的面积和曲线的对称性来理解。其中临界位移需要综合考虑$V_{max}$是否能够达到$v_{limit}$。</p>
+</blockquote>
+<ol>
+<li><strong>临界速度</strong>：$v_{limit} &#x3D; \frac{a_{max}^2}{j}$ （达到 $a_{max}$ 时的最小速度增量）</li>
+<li><strong>临界 $a_{max}$ 位移</strong>：$S_{amax} &#x3D; \frac{2 \cdot a_{max}^3}{j^2}$ （理想状态下，达到$a_{max}$时加减速段的最小位移）</li>
+<li><strong>临界 $V_{max}$ 位移</strong>:<br>$$ S_{vmax} &#x3D; 2V_{max}\sqrt{\frac{V_{max} }{j}} $$   (达不到$a_{max}$时，要实现$V_{max}$加减速段的最小位移)；<br>$$ S_{vmax} &#x3D; V_{max}(V_{max}&#x2F;{a_{max}} + a_{max}&#x2F;{j}) $$   (达到$a_{max}$时，要实现$V_{max}$加减速段的最小位移）</li>
+</ol>
+<p>以下是判断四种情况的决策树：<br><img src="/.marking/assets/img-1786348604022.png" srcset="/img/loading.gif" lazyload alt="决策树2.png"></p>
+<h4 id="情况-C：4段曲线（无匀加速段、无匀速段）"><a href="#情况-C：4段曲线（无匀加速段、无匀速段）" class="headerlink" title="情况 C：4段曲线（无匀加速段、无匀速段）"></a>情况 C：4段曲线（无匀加速段、无匀速段）</h4><ul>
+<li>最大速度不满足及速度跑完；（注定没有匀加速段）</li>
+<li>位移不满足加速度跑完；（注定没有匀加速段）</li>
+<li>唯一不支持最大速度跑完。（注定没有匀速段）<br><img src="/.marking/assets/img-1786412135734.png" srcset="/img/loading.gif" lazyload alt="4段.png"></li>
+</ul>
+<p>那么4段曲线的每一阶段的输出推导如下：<br>OA段末状态：<br>$$<br>a_{OA}&#x3D;JT_1<br>$$<br>$$<br>V_{A}&#x3D;\int_{0}^{T_1} Jt  , dt&#x3D;\frac{1 }{2}JT_1^2<br>$$<br>AB段末状态：<br>$$<br>V_{B}&#x3D;V_{A}+\int_{T_1}^{T_2} JT_1-J(t-T_1)  , dt&#x3D;JT_1^2<br>$$<br>根据对称性，可得<br>$$<br>S_{total}&#x3D;V_{B}*2T_1&#x3D;2JT_1^3<br>$$</p>
+<blockquote>
+<p>[!TIP]<br>5段、6段计算推导参考4段的推导，这里不展开了。</p>
+</blockquote>
+<h4 id="情况-B：5段曲线（无匀加速段）"><a href="#情况-B：5段曲线（无匀加速段）" class="headerlink" title="情况 B：5段曲线（无匀加速段）"></a>情况 B：5段曲线（无匀加速段）</h4><ul>
+<li>最大速度不能满足加速度跑完（注定没有匀加速段）；</li>
+<li>位移满足最大速度跑完。</li>
+</ul>
+<h4 id="情况-A：6段曲线（无匀速段）"><a href="#情况-A：6段曲线（无匀速段）" class="headerlink" title="情况 A：6段曲线（无匀速段）"></a>情况 A：6段曲线（无匀速段）</h4><ul>
+<li>最大速度能满足加速度跑完；</li>
+<li>位移满足加速度跑完；</li>
+<li>位移不满足最大速度跑完。（注定没有匀速段）</li>
+</ul>
+<hr>
+<h2 id="四、-C语言代码实现"><a href="#四、-C语言代码实现" class="headerlink" title="四、 C语言代码实现"></a>四、 C语言代码实现</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;S_curve7_pro.h&quot;</span></span><br><span class="hljs-keyword">extern</span> <span class="hljs-type">uint32_t</span> cnt;<br><span class="hljs-comment">//S_curve_t sc_accel[sizeof(Stepper_t)];</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Accel_Stepper_Move</span><br><span class="hljs-comment"> * stepper : Pointer to stepper struct</span><br><span class="hljs-comment"> * step : Number of step to run</span><br><span class="hljs-comment"> * accel : acceleration &lt;rad/s^2&gt;</span><br><span class="hljs-comment"> * jerk : constant jerk limit &lt;rad/s^3&gt;</span><br><span class="hljs-comment"> * rpm : speed at run state</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">Accel_Stepper_Move</span><span class="hljs-params">(S_curve_t* stepper, <span class="hljs-type">signed</span> <span class="hljs-type">int</span> step, <span class="hljs-type">uint8_t</span> accel, <span class="hljs-type">uint8_t</span> jerk, <span class="hljs-type">uint16_t</span> rpm)</span><br>&#123;<br>    <span class="hljs-comment">//  先判断电机往哪边转，这里乘以2是为了补偿toggle取反模拟的脉冲频率（两次取反才会有一个上升沿）</span><br>    <span class="hljs-keyword">if</span>(step &lt; <span class="hljs-number">0</span>)<br>    &#123;<br>        HAL_GPIO_WritePin(stepper-&gt;Dir_Port, stepper-&gt;Dir_Pin, <span class="hljs-number">0</span>);<br>        stepper-&gt;step = <span class="hljs-number">-2</span>*step;       <br>    &#125;<br>    <span class="hljs-keyword">if</span>(step &gt; <span class="hljs-number">0</span>)<br>    &#123;<br>    	stepper-&gt;step = <span class="hljs-number">2</span>*step;<br>        HAL_GPIO_WritePin(stepper-&gt;Dir_Port, stepper-&gt;Dir_Pin, <span class="hljs-number">1</span>);<br>    &#125;<br><br>    stepper-&gt;accel_max = <span class="hljs-number">1000000</span>*accel;                                         <span class="hljs-comment">//  stepper-&gt;max_arr = T_FREQ * sqrtf(2*ALPHA/stepper-&gt;accel_max);</span><br>    stepper-&gt;v_max = <span class="hljs-number">2</span>*<span class="hljs-number">104720</span>*rpm;                                              <span class="hljs-comment">//  2*3.141592*rpm/60*1000000，这里单位是μrad/s;</span><br>    stepper-&gt;J = <span class="hljs-number">1000000</span>*jerk;                                                  <span class="hljs-comment">//  加加速度urad/s^3</span><br>    stepper-&gt;theta = ALPHA*stepper-&gt;step;                                       <span class="hljs-comment">//  theta表示目标位移，单位是μrad ;</span><br><br>    stepper-&gt;v_accel = ((<span class="hljs-type">long</span>)(accel*accel*<span class="hljs-number">1000000</span>))/jerk;                      <span class="hljs-comment">//  计算速度够不够跑到v_max</span><br>    stepper-&gt;theta_accel = <span class="hljs-number">2</span>*((<span class="hljs-type">long</span>)(accel*accel*accel/jerk/jerk)*<span class="hljs-number">1000000</span>);     <span class="hljs-comment">//  计算加、减速段的总位移</span><br><br>    <span class="hljs-keyword">if</span> (stepper-&gt;v_max &lt; stepper-&gt;v_accel)                                      <span class="hljs-comment">//  没有匀加速阶段的三角曲线</span><br>        stepper-&gt;theta_v = <span class="hljs-number">2</span>*stepper-&gt;v_max*sqrtf(stepper-&gt;v_max/stepper-&gt;J);   <span class="hljs-comment">//  这里计算位移阈值theta_v</span><br>    <span class="hljs-keyword">else</span><br>        stepper-&gt;theta_v = stepper-&gt;v_max*(((<span class="hljs-type">float</span>)stepper-&gt;v_max/stepper-&gt;accel_max)+((<span class="hljs-type">float</span>) accel/jerk));    <span class="hljs-comment">// sv = v_max*((v_max/a_max)+(a_max/J));</span><br><br>    <span class="hljs-keyword">if</span> (  ((stepper-&gt;v_max&gt;stepper-&gt;v_accel) &amp;&amp; (stepper-&gt;theta&lt;stepper-&gt;theta_accel))<br>        ||((stepper-&gt;v_max&lt;stepper-&gt;v_accel) &amp;&amp; ((stepper-&gt;theta&lt;stepper-&gt;theta_accel) &amp;&amp; (stepper-&gt;theta&lt;stepper-&gt;theta_v))) )<br>        &#123;   <span class="hljs-comment">//4段</span><br>            stepper-&gt;tj = powf((<span class="hljs-type">float</span>) stepper-&gt;theta/(<span class="hljs-number">2</span>*stepper-&gt;J), <span class="hljs-number">1.0</span>/<span class="hljs-number">3</span>);<br>            stepper-&gt;ta = stepper-&gt;tj;<br>            stepper-&gt;tv = <span class="hljs-number">2</span>*stepper-&gt;tj;<br>        &#125;<br><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (   ((stepper-&gt;v_max&lt;stepper-&gt;v_accel) &amp;&amp; (stepper-&gt;theta&gt;stepper-&gt;theta_accel))<br>    	     || ((stepper-&gt;v_max&lt;stepper-&gt;v_accel) &amp;&amp; ((stepper-&gt;theta&lt;stepper-&gt;theta_accel)<br>        	 &amp;&amp; (stepper-&gt;theta&gt;stepper-&gt;theta_v))) )<br>            &#123;   <span class="hljs-comment">//5段</span><br>                stepper-&gt;tj = sqrtf(stepper-&gt;v_max/stepper-&gt;J);<br>                stepper-&gt;ta = stepper-&gt;tj;<br>                stepper-&gt;tv = (<span class="hljs-type">float</span>) stepper-&gt;theta/stepper-&gt;v_max;<br>            &#125;<br><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (   ((stepper-&gt;v_max &gt; stepper-&gt;v_accel) &amp;&amp; (stepper-&gt;theta &gt; stepper-&gt;theta_accel))<br>    		  &amp;&amp;(stepper-&gt;theta &gt; stepper-&gt;theta_v))<br>            &#123;<span class="hljs-comment">//7段</span><br>                stepper-&gt;tj = (<span class="hljs-type">float</span>) accel/jerk;<br>                stepper-&gt;ta = (<span class="hljs-type">float</span>) stepper-&gt;v_max/stepper-&gt;accel_max;<br>                stepper-&gt;tv = (<span class="hljs-type">float</span>) stepper-&gt;theta/stepper-&gt;v_max;<span class="hljs-comment">//divide theta with 2 to get correct time</span><br>            &#125;<br><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (((stepper-&gt;v_max &gt; stepper-&gt;v_accel) &amp;&amp; (stepper-&gt;theta &gt; stepper-&gt;theta_accel))<br>    		&amp;&amp;(stepper-&gt;theta &lt; stepper-&gt;theta_v))<br>            &#123;<span class="hljs-comment">//6段</span><br>                stepper-&gt;tj = (<span class="hljs-type">float</span>) accel/jerk;<br>                <span class="hljs-type">float</span> a3 =  accel*accel*accel;<br>                <span class="hljs-type">float</span> thetaJ2 =  <span class="hljs-number">4.0</span>*stepper-&gt;theta * jerk*jerk/<span class="hljs-number">1000000</span>;<br>                <span class="hljs-type">float</span> aJ2 = accel*jerk*jerk;<br><br>                stepper-&gt;ta = <span class="hljs-number">0.5</span> * (sqrtf((thetaJ2+a3)/aJ2) - (<span class="hljs-type">float</span>) accel/jerk);<br>                stepper-&gt;tv = stepper-&gt;ta + stepper-&gt;tj;<br>            &#125;<br>    <span class="hljs-comment">/*Calculate time sequence*/</span><br><br>    stepper-&gt;t1 = stepper-&gt;tj;                                          <span class="hljs-comment">//  这里每个阶段对应的结束时刻</span><br>    stepper-&gt;t2 = stepper-&gt;ta;<br>    stepper-&gt;t3 = stepper-&gt;tj + stepper-&gt;ta;<br>    stepper-&gt;t4 = stepper-&gt;tv;<br>    stepper-&gt;t5 = stepper-&gt;tj + stepper-&gt;tv;<br>    stepper-&gt;t6 = stepper-&gt;tv + stepper-&gt;ta;<br>    stepper-&gt;t7 = stepper-&gt;tv + stepper-&gt;ta + stepper-&gt;tj;<br><br>    <span class="hljs-comment">/*Start acceleration*/</span><br>    __HAL_TIM_SET_AUTORELOAD(stepper-&gt;htim, MAX_ARR);       <span class="hljs-comment">//  设置定时器重载值为2000（最大ARR=最低频率）</span><br>    stepper-&gt;min_arr = ALPHA/stepper-&gt;v_max *T_FREQ;        <span class="hljs-comment">//  计算最高速度对应的ARR值</span><br>    stepper-&gt;t = <span class="hljs-number">0</span>;                                         <span class="hljs-comment">//  重置时间和步数</span><br>    stepper-&gt;step_count = <span class="hljs-number">0</span>;<br>    stepper-&gt;arr = <span class="hljs-number">2000</span>;                                    <span class="hljs-comment">//  初始ARR值为2000，后续会根据速度计算ARR值</span><br>    stepper-&gt;run_state = START;                             <span class="hljs-comment">//  设置状态为开始运行</span><br>    HAL_TIM_Base_Start_IT(stepper-&gt;htim);                   <span class="hljs-comment">//  启动定时器中断，开始运行步进电机</span><br><br>&#125;<br><br><span class="hljs-comment">/*in case t &lt;= t1 : execute_phase_1*/</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">execute_phase_1</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br>	stepper-&gt;a1 = stepper-&gt;J * stepper-&gt;t;<br>    stepper-&gt;v  = stepper-&gt;a1/<span class="hljs-number">2</span> * stepper-&gt;t;<br>    stepper-&gt;v1 = stepper-&gt;v;<br>    stepper-&gt;a2 = stepper-&gt;a1;<br>&#125;<br><span class="hljs-comment">/*in case t &gt; t1 &amp; t &lt;= t2 : execute_phase_2*/</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">execute_phase_2</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br>	<span class="hljs-type">float</span> dt = stepper-&gt;t - stepper-&gt;t1;<br>	stepper-&gt;v  = stepper-&gt;v1 + stepper-&gt;a2*dt;<br>    stepper-&gt;v2 = stepper-&gt;v;<br>&#125;<br><span class="hljs-comment">/*in case t &gt; t2 &amp; t &lt;= t3 : execute_phase_3*/</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">execute_phase_3</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br>    <span class="hljs-keyword">if</span>((<span class="hljs-type">uint16_t</span>) (stepper-&gt;t1*<span class="hljs-number">100</span>)  == (<span class="hljs-type">uint16_t</span>) (stepper-&gt;t2*<span class="hljs-number">100</span>))<br>    &#123;<br>    	stepper-&gt;v2 = stepper-&gt;v1;<br>    &#125;<br>    <span class="hljs-type">float</span> dt = (stepper-&gt;t - stepper-&gt;t2);<br>    stepper-&gt;v = stepper-&gt;v2 + (stepper-&gt;a2 - stepper-&gt;J/<span class="hljs-number">2</span> *dt)*dt;<br>    stepper-&gt;v3 = stepper-&gt;v;<br>&#125;<br><span class="hljs-comment">/*in case t &gt; t3 &amp; t &lt;= t4 : execute_phase_4*/</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">execute_phase_4</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br>	stepper-&gt;v = stepper-&gt;v3;<br>&#125;<br><span class="hljs-comment">/*in case t &gt; t4 &amp; t &lt;= t5 : execute_phase_5*/</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">execute_phase_5</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br>    <span class="hljs-type">float</span> dt = stepper-&gt;t - stepper-&gt;t4;<br>    stepper-&gt;a5 = stepper-&gt;J*dt*(<span class="hljs-number">-1</span>);<br>    <span class="hljs-type">signed</span> <span class="hljs-type">int</span> Jt2 = stepper-&gt;a5/<span class="hljs-number">2</span> *dt;<br>    stepper-&gt;v = stepper-&gt;v3 + Jt2;<br>    stepper-&gt;v5 = stepper-&gt;v;<br>&#125;<br><span class="hljs-comment">/*in case t &gt; t5 &amp; t &lt;= t6 : execute_phase_6*/</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">execute_phase_6</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br>	<span class="hljs-type">float</span> dt = stepper-&gt;t - stepper-&gt;t5;<br>	stepper-&gt;a6 = stepper-&gt;a5;<br>    stepper-&gt;v = stepper-&gt;v5 + stepper-&gt;a5*dt;<br>    stepper-&gt;v6 = stepper-&gt;v;<br>&#125;<br><span class="hljs-comment">/*in case t &gt; t6 &amp; t &lt;= t7 : execute_phase_7*/</span><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">execute_phase_7</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br>    <span class="hljs-keyword">if</span>((<span class="hljs-type">uint16_t</span>) (stepper-&gt;t5*<span class="hljs-number">100</span>) == (<span class="hljs-type">uint16_t</span>) (stepper-&gt;t6*<span class="hljs-number">100</span>))<br>    &#123;<br>    	stepper-&gt;v6 = stepper-&gt;v5;<br>    	stepper-&gt;a6 = stepper-&gt;a5;<br>    &#125;    <br>    <span class="hljs-type">float</span> dt = stepper-&gt;t - stepper-&gt;t6;<br>    stepper-&gt;v = stepper-&gt;v6 + (stepper-&gt;a6 + stepper-&gt;J/<span class="hljs-number">2</span> *dt)*dt;<br>&#125;<br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Accel_Stepper_TIMIT_Handler</span><br><span class="hljs-comment"> * stepper : Num of which stepper use found @ Stepper_t</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">Accel_Stepper_TIMIT_Handler</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br><br>	<span class="hljs-type">static</span> <span class="hljs-type">float</span> arr = <span class="hljs-number">0</span>;<br>	__HAL_TIM_SET_AUTORELOAD(stepper-&gt;htim, stepper-&gt;arr);  <span class="hljs-comment">//每次进入中断会更新ARR的值</span><br><br>	<span class="hljs-keyword">switch</span>(stepper-&gt;run_state) <br>    &#123;<br><br>        <span class="hljs-keyword">case</span> START:<br>            stepper-&gt;run_state = PHASE1;<br>            <span class="hljs-keyword">break</span>;<br>		<span class="hljs-keyword">case</span> STOP:<br>			stepper-&gt;step_count = <span class="hljs-number">0</span>;<br>		   	HAL_TIM_Base_Stop_IT(stepper-&gt;htim);<br>		   	stepper-&gt;t = <span class="hljs-number">0</span>;<br>		   	<span class="hljs-keyword">break</span>;<br>	    <span class="hljs-keyword">case</span> PHASE1:<br>	    	run_stepper(stepper);<br>	    	execute_phase_1(stepper);<br>	        <span class="hljs-keyword">if</span>(stepper-&gt;t &gt;= stepper-&gt;t1)<br>            &#123;<br>	        	<span class="hljs-keyword">if</span>(stepper-&gt;t1 != stepper-&gt;t2)<br>                &#123;<br>	        		stepper-&gt;run_state = PHASE2;<br>	        	&#125;<br>                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(stepper-&gt;t1 == stepper-&gt;t2)<br>                &#123;<br>		        	stepper-&gt;run_state = PHASE3;<br>		        &#125;<br>	        &#125;<br>	        <span class="hljs-keyword">break</span>;<br>	    <span class="hljs-keyword">case</span> PHASE2:<br>	    	run_stepper(stepper);<br>	    	execute_phase_2(stepper);<br>	        <span class="hljs-keyword">if</span> (stepper-&gt;t &gt;= stepper-&gt;t2)<br>            &#123;<br>	        	stepper-&gt;run_state = PHASE3;<br>            &#125;<br>	        <span class="hljs-keyword">break</span>;<br>	    <span class="hljs-keyword">case</span> PHASE3:<br>	    	run_stepper(stepper);<br>	    	execute_phase_3(stepper);<br>            <span class="hljs-keyword">if</span> (stepper-&gt;t &gt;= stepper-&gt;t3)<br>            &#123;<br>	        	<span class="hljs-keyword">if</span>(stepper-&gt;t3 != stepper-&gt;t4)<br>                &#123;<br>	        		stepper-&gt;run_state = PHASE4;<br>	        	&#125;<br>                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(stepper-&gt;t3 == stepper-&gt;t4)<br>                &#123;<br>		        	stepper-&gt;run_state = PHASE5;<br>		        &#125;<br>            &#125;<br>            <span class="hljs-keyword">break</span>;<br>	    <span class="hljs-keyword">case</span> PHASE4:<br>	    	run_stepper(stepper);<br>	    	execute_phase_4(stepper);<br>            <span class="hljs-keyword">if</span> (stepper-&gt;t &gt;= stepper-&gt;t4)<br>            &#123;<br>            	stepper-&gt;run_state = PHASE5;<br>            &#125;<br>            <span class="hljs-keyword">break</span>;<br>	    <span class="hljs-keyword">case</span> PHASE5:<br>	    	run_stepper(stepper);<br>	    	execute_phase_5(stepper);<br>            <span class="hljs-keyword">if</span> (stepper-&gt;t &gt;= stepper-&gt;t5)<br>            &#123;<br>	        	<span class="hljs-keyword">if</span>(stepper-&gt;t5 != stepper-&gt;t6)<br>                &#123;<br>	        		stepper-&gt;run_state = PHASE6;<br>	        	&#125;<br>                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(stepper-&gt;t5 == stepper-&gt;t6)<br>                &#123;<br>		        	stepper-&gt;run_state = PHASE7;<br>		        &#125;<br>            &#125;<br>            <span class="hljs-keyword">break</span>;<br>	    <span class="hljs-keyword">case</span> PHASE6:<br>	    	run_stepper(stepper);<br>	    	execute_phase_6(stepper);<br>            <span class="hljs-keyword">if</span> (stepper-&gt;t &gt;= stepper-&gt;t6)<br>            &#123;<br>            	stepper-&gt;run_state = PHASE7;<br>            &#125;<br>            <span class="hljs-keyword">break</span>;<br>	    <span class="hljs-keyword">case</span> PHASE7:<br>	    	run_stepper(stepper);<br>            execute_phase_7(stepper);<br>            <span class="hljs-keyword">break</span>;<br>	    <span class="hljs-keyword">default</span>:<br>	    	<span class="hljs-keyword">break</span>;<br><br><br>    &#125;<br><br>    <span class="hljs-comment">//  最低速度保护</span><br>	<span class="hljs-keyword">if</span>(stepper-&gt;v &lt; <span class="hljs-number">1000000</span>) <br>    &#123;<br>		stepper-&gt;v = <span class="hljs-number">1000000</span>;<br>	&#125;<br><br>    arr = ALPHA*T_FREQ /(<span class="hljs-type">float</span>) stepper-&gt;v ;<br><br>    <span class="hljs-keyword">if</span>(arr &lt; stepper-&gt;min_arr)<br>    &#123;<br>    	arr = stepper-&gt;min_arr;<br>    &#125;<br>    stepper-&gt;arr = arr;<br>	stepper-&gt;t = stepper-&gt;t + (<span class="hljs-type">float</span>) stepper-&gt;arr/T_FREQ;<span class="hljs-comment">//sample time (s)</span><br><br>&#125;<br><br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Set GPIO for each stepper</span><br><span class="hljs-comment"> * stepper : Num of whitch stepper use found @ Stepper_t</span><br><span class="hljs-comment"> * step_port : GPIO port of step pin</span><br><span class="hljs-comment"> * step_pin : gpio pin number of step pin</span><br><span class="hljs-comment"> * dir_port : GPIO port of direction pin</span><br><span class="hljs-comment"> * dir_pin : gpio pin number of direction pin</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">Accel_Stepper_SetPin</span><span class="hljs-params">(S_curve_t* stepper, GPIO_TypeDef* step_port,</span><br><span class="hljs-params">		<span class="hljs-type">uint16_t</span> step_pin, GPIO_TypeDef* dir_port, <span class="hljs-type">uint16_t</span> dir_pin)</span><br>&#123;<br>	stepper-&gt;Step_Port = step_port;<br>	stepper-&gt;Dir_Port = dir_port;<br>	stepper-&gt;Step_Pin = step_pin;<br>	stepper-&gt;Dir_Pin = dir_pin;<br>&#125;<br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Set Timer for each motor</span><br><span class="hljs-comment"> * stepper : Num of which stepper use found @ Stepper_t</span><br><span class="hljs-comment"> * timer : pointer to timer typedef(Which timer is use for control speed)</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">Accel_Stepper_SetTimer</span><span class="hljs-params">(S_curve_t* stepper, TIM_HandleTypeDef* timer)</span><br>&#123;<br>	stepper-&gt;htim = timer;<br>&#125;<br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">run_stepper</span><span class="hljs-params">(S_curve_t* stepper)</span><br>&#123;<br>	HAL_GPIO_TogglePin(stepper-&gt;Step_Port, stepper-&gt;Step_Pin);<br>	stepper-&gt;step_count++;<br>    <span class="hljs-keyword">if</span>(stepper-&gt;step_count &gt;= stepper-&gt;step)<br>    &#123;<br>    	stepper-&gt;run_state = STOP;<br>        stepper-&gt;step_count = <span class="hljs-number">0</span>;<br><br>	     <span class="hljs-comment">// Stop Timer/Counter 1.</span><br>	   	HAL_TIM_Base_Stop_IT(stepper-&gt;htim);<br>	   	stepper-&gt;t = <span class="hljs-number">0</span>;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> S_CURVE7_PRO_H</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> S_CURVE7_PRO_H</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;stdlib.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;math.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdint.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;gpio.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;tim.h&quot;</span></span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> SPR 1600                <span class="hljs-comment">//number of step per round 1/8</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> T_FREQ 1000000          <span class="hljs-comment">//timer frequency Hz</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> ALPHA (6283185.31/SPR)   <span class="hljs-comment">// 2*pi/spr * 1000000，表示每一步走多少urad</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MIN_FREQ 1000          <span class="hljs-comment">// 1kHz</span></span><br><span class="hljs-comment">// #define MAX_ARR T_FREQ/MIN_FREQ  (max_arr = f*sqrt(2*alpha/a_max);)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MAX_ARR 2000</span><br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">enum</span>&#123;</span><br>	STOP,<br>	START,<br>	PHASE1,<br>	PHASE2,<br>	PHASE3,<br>	PHASE4,<br>	PHASE5,<br>	PHASE6,<br>	PHASE7<br>&#125;<span class="hljs-type">ramp_state_t</span>;<br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">enum</span>&#123;</span><br>	STEPPER1,<br>	STEPPER2,<br>	STEPPER3,<br>	STEPPER4,<br>	STEPPER5,<br>	STEPPER6<br>&#125;Stepper_t;<br><span class="hljs-comment">//typedef void (*execute_phase_t)(Stepper_t stepper);</span><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span>&#123;</span><br><br>    <span class="hljs-type">uint32_t</span> v_accel;              	<span class="hljs-comment">/*Acceleration speed &lt;rad/s&gt;: max speed reached during the movement*/</span><br>    <span class="hljs-type">uint32_t</span> theta_accel;          	<span class="hljs-comment">/*Acceleration angle: the stroke at the end of acceleration correspond to t_accel &lt;rad&gt;; (for distance &quot;s_accel&quot; &lt;m&gt;)*/</span><br>    <span class="hljs-type">uint32_t</span> theta_v;              	<span class="hljs-comment">/*Acceleration angle: the stroke at the end of the movement correspond to t_v &lt;rad&gt;; (for distance &quot;s_v&quot; &lt;m&gt;)*/</span><br>    <span class="hljs-type">uint32_t</span> theta;                	<span class="hljs-comment">/*Angle to move &lt;rad&gt;; (for distance &quot;s&quot; &lt;m&gt;)*/</span><br>    <span class="hljs-type">uint32_t</span> accel_max;            	<span class="hljs-comment">/*Max acceleration */</span><br>    <span class="hljs-type">uint32_t</span> v_max;                	<span class="hljs-comment">/*Max speed*/</span><br>    <span class="hljs-type">uint32_t</span> J;                    	<span class="hljs-comment">/*constant jerk*/</span><br>    <span class="hljs-type">uint32_t</span> arr;                  	<span class="hljs-comment">/*timer autoreload register (counter period)*/</span><br>    <span class="hljs-type">uint32_t</span> v1,v2,v3,v4,v5,v6;    	<span class="hljs-comment">/*speed at the end of each phase*/</span><br>    <span class="hljs-type">uint32_t</span> accel;                	<span class="hljs-comment">/*Acceleration coefficient*/</span><br>    <span class="hljs-type">uint32_t</span> v;                    	<span class="hljs-comment">/*Output speed of each phase*/</span><br>    <span class="hljs-type">uint32_t</span> step_count,step_change,step1,step2,step3,step4,step5,step6;<br>    <span class="hljs-type">uint16_t</span> min_arr;<br>    <span class="hljs-type">float</span> tj;                  	   	<span class="hljs-comment">/*time constant for jerk*/</span><br>    <span class="hljs-type">float</span> ta;                   	<span class="hljs-comment">/*time constant for acceleration*/</span><br>    <span class="hljs-type">float</span> tv;                  		<span class="hljs-comment">/*time constant for reach to the end of movement(v_max)*/</span><br>    <span class="hljs-type">float</span> t,t_change;                   		<span class="hljs-comment">/*time*/</span><br>    <span class="hljs-type">float</span> t1,t2,t3,t4,t5,t6,t7;		<span class="hljs-comment">/*time of each phase*/</span><br>    <span class="hljs-type">signed</span> <span class="hljs-type">int</span> a1,a2,a3,a5,a6;		<span class="hljs-comment">/*acceleration at the end of each phase*/</span><br>    <span class="hljs-type">signed</span> <span class="hljs-type">int</span> step;            	<span class="hljs-comment">/*Number of step to move*/</span><br>	<span class="hljs-type">uint16_t</span> Step_Pin;          	<span class="hljs-comment">/*GPIO PIN for step pin*/</span><br>	<span class="hljs-type">uint16_t</span> Dir_Pin;           	<span class="hljs-comment">/*GPIO PIN for direction pin*/</span><br>    GPIO_TypeDef* Step_Port;    	<span class="hljs-comment">/*GPIO port for step pin*/</span><br>	GPIO_TypeDef* Dir_Port;     	<span class="hljs-comment">/*GPIO port for direction pin*/</span><br>	TIM_HandleTypeDef* htim;    	<span class="hljs-comment">/*Timer structure*/</span><br>    <span class="hljs-type">ramp_state_t</span> run_state;<br>&#125;S_curve_t;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">Accel_Stepper_Move</span><span class="hljs-params">(S_curve_t* stepper, <span class="hljs-type">signed</span> <span class="hljs-type">int</span> step, <span class="hljs-type">uint8_t</span> accel, <span class="hljs-type">uint8_t</span> jerk, <span class="hljs-type">uint16_t</span> rpm)</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">Accel_Stepper_SetTimer</span><span class="hljs-params">(S_curve_t* stepper, TIM_HandleTypeDef* htim)</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">Accel_Stepper_SetPin</span><span class="hljs-params">(S_curve_t* stepper, GPIO_TypeDef* step_port, <span class="hljs-type">uint16_t</span> step_pin, GPIO_TypeDef* dir_port, <span class="hljs-type">uint16_t</span> dir_pin)</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">Accel_Stepper_TIMIT_Handler</span><span class="hljs-params">(S_curve_t* stepper)</span>;<br><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span> <span class="hljs-comment">// S_CURVE7_PRO_H</span></span><br><br></code></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/tech/" class="print-no-link">#tech</a>
+      
+        <a href="/tags/doc/" class="print-no-link">#doc</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div></div>
+      <div>http://example.com/2026/08/05/步进电机S形速度曲线原理与代码实现/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>August 5, 2026</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/07/02/PADS%20logic_layout_route%20%E7%BB%98%E5%88%B64%E5%B1%82%E6%9D%BF%E6%80%BB%E7%BB%93/" title="">
+                        <span class="hidden-mobile"></span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
